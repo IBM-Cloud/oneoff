@@ -4,7 +4,7 @@
   "description": "Manage running one-off tasks for Cloud Foundry applications",
   "main": "lib/oneoff.js",
   "scripts": {
-    "test": "npm test"
+    "test": "mocha test/"
   },
   "keywords": [
     "cloud foundry",

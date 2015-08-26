@@ -23,6 +23,8 @@ var tasks = [{
   task: function (cb) {this.is_done = true; cb()}
 }]
 
-require('../lib/oneoff.js').run(tasks, function (err, result) {
+var oneoff = require('../lib/oneoff.js');
+oneoff.instance_zero = true;
+oneoff.run(tasks, function (err, result) {
   console.log(err, result)
 })
