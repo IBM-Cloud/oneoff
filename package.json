@@ -1,0 +1,23 @@
+{
+  "name": "oneoff",
+  "version": "0.1.0",
+  "description": "Manage running one-off tasks for Cloud Foundry applications",
+  "main": "lib/oneoff.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "keywords": [
+    "cloud foundry",
+    "tasks",
+    "ibm",
+    "bluemix"
+  ],
+  "bin": {
+    "oneoff": "./bin/oneoff"
+  },
+  "author": "James Thomas <james@jamesthom.as>",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}

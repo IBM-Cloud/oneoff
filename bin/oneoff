@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+// Find command line arguments
+console.log(1, process.argv)
+
+var tasks = [{
+  is_done: false,
+  order: 1,
+  name: 'task',
+  done: function (cb) {
+    console.log(this.name);
+    cb(null, this.is_done)
+  }, 
+  task: function (cb) {
+    this.is_done = true
+    cb()
+  }
+},
+{
+  is_done: false,
+  name: 'task 2',
+  done: function (cb) { console.log(this.name);cb(null, this.is_done);},
+  task: function (cb) {this.is_done = true; cb()}
+}]
+
+require('../lib/oneoff.js').run(tasks, function (err, result) {
+  console.log(err, result)
+})
