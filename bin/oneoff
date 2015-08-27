@@ -52,7 +52,7 @@ fs.readdir(tasks_directory, function (err, files) {
 
   var tasks = files.map(function (file) {
     try {
-      return require(path.join(tasks_directory, file))
+      return require(path.join(process.cwd(), tasks_directory, file))
     } catch (err) {
       log('unable to load task --> ' + file)
       fail(err)

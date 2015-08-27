@@ -2,7 +2,7 @@
 
 Manage running one-off tasks for NodeJS applications on Cloud Foundry.
 
-Cloud Foundry doesn't provide access to the host machine or bound services when running your
+Cloud Foundry doesn't provide access to the host machine or bound services running your
 application. This makes running manual configuration tasks (initialize this 
 database, upgrade this table schema, etc.) during deployment a challenge...
 
@@ -103,16 +103,40 @@ your tasks.
 
 ### application startup 
 
+Set the *oneoff* command to run before your application starts, e.g. using
+*prestart* or *start* NPM scripts.
 
-logging during usage
+<pre>
+{
+  "name": "example",
+  "scripts": {
+    "prestart": "oneoff",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    ...
+  }
+}
+</pre>
 
-optinal directory
+By default, *oneoff* will search for tasks under the *./lib/tasks* directory.
+This location can be modified using the *--tasks ./path/to/tasks* command line argument.
 
-errors, exit
+With the *oneoff* command has been correctly registered into application
+startup, the following log entries should appear: 
 
-expected log output
+<pre>
+oneoff task runner (app instance #X): looking for tasks in ./lib/tasks
+oneoff task runner (app instance #X): found the following tasks --> task.js
+oneoff task runner (app instance #X): successfully loaded all tasks, starting execution...
+oneoff task runner (app instance #X): finished executing all tasks!
+</pre>
+
+Errors from the tasks will cause the command to exit with a failure status
+code and force the application startup to fail.
+
 ## tests
 
 <pre>
-$ npm tests
+npm tests
 </pre>
