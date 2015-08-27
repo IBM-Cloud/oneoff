@@ -6,12 +6,12 @@ Cloud Foundry doesn't provide access to the host machine or bound services runni
 application. This makes running manual configuration tasks (initialize this 
 database, upgrade this table schema, etc.) during deployment a challenge...
 
-There are a number of ways to ~~hack~~ work around this but they rely on manual 
-deployment steps, e.g. *deploy a single instance of your application with a
+There are a [number](https://docs.cloudfoundry.org/devguide/services/migrate-db.html) [of](https://docs.18f.gov/getting-started/cf-ssh/) [ways](https://blog.starkandwayne.com/2014/07/14/running-one-time-tasks-in-cloud-foundry/) to ~~hack~~ work around this but they rely on manual 
+deployment steps, e.g. *temporarily deploy a single instance of your application with a
 custom start command*. **Yuck.**
 
 Using oneoff, you define your tasks as code which are automatically run during
-the normal deployment. ...No more [snowflake ops](http://martinfowler.com/bliki/SnowflakeServer.html).
+the normal deployment. 
 
 oneoff provides the following features...
 
@@ -21,6 +21,8 @@ oneoff provides the following features...
 * dependency ordering, ensure task a completes before task b starts
 * parallel task execution 
 * ignore completed tasks in future deployments
+
+No more [snowflake ops](http://martinfowler.com/bliki/SnowflakeServer.html).
 
 ## install 
 
@@ -122,7 +124,7 @@ Set the *oneoff* command to run before your application starts, e.g. using
 By default, *oneoff* will search for tasks under the *./lib/tasks* directory.
 This location can be modified using the *--tasks ./path/to/tasks* command line argument.
 
-With the *oneoff* command has been correctly registered into application
+If the *oneoff* command has been correctly registered into application
 startup, the following log entries should appear: 
 
 <pre>
@@ -135,8 +137,16 @@ oneoff task runner (app instance #X): finished executing all tasks!
 Errors from the tasks will cause the command to exit with a failure status
 code and force the application startup to fail.
 
+## limitations
+
+Cloud Foundry default application startup time is [limited to sixty seconds](https://docs.cloudfoundry.org/devguide/deploy-apps/large-app-deploy.html). If task execution pushes the startup time over this threshold, the health check will restart the application. 
+
+This value can be increased to a maximum of three minutes using the [*timeout*](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#timeout) property in the application manifest.
+
+
+
 ## tests
 
 <pre>
-npm tests
+$ npm tests
 </pre>
