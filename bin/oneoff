@@ -1,30 +1,68 @@
 #!/usr/bin/env node
 
-// Find command line arguments
-console.log(1, process.argv)
+var oneoff = require('../lib/oneoff.js'),
+  argv = require('yargs').argv,
+  fs = require('fs'),
+  errno = require('errno'),
+  path = require('path')
 
-var tasks = [{
-  is_done: false,
-  order: 1,
-  name: 'task',
-  done: function (cb) {
-    console.log(this.name);
-    cb(null, this.is_done)
-  }, 
-  task: function (cb) {
-    this.is_done = true
-    cb()
+// hat tip: https://github.com/rvagg/node-errno#errno-exposed
+var errmsg = function (err) {
+  var str = 'Error: '
+  // if it's a libuv error then get the description from errno
+  if (errno.errno[err.errno])
+    str += errno.errno[err.errno].description
+  else
+    str += err.message
+
+  // if it's a `fs` error then it'll have a 'path' property
+  if (err.path)
+    str += ' [' + err.path + ']'
+
+  return str
+}
+
+var fail = function (err) {
+  log('failed due to the following error...')
+  console.log(errmsg(err))
+  process.exit(1)
+}
+
+var log = function (msg) {
+  console.log('oneoff task runner (app instance #' + instance_index + '):', msg)
+}
+
+var instance_index = process.env.CF_INSTANCE_INDEX || 'unknown'
+var tasks_directory = argv.tasks || './lib/tasks'
+
+log('looking for tasks in ' + tasks_directory)
+fs.readdir(tasks_directory, function (err, files) {
+  if (err) fail(err)
+
+  var files = files.filter(function (file) {
+    return file.match(/^[^\.].*\.js$/)
+  })
+
+  if (!files.length) {
+    log(tasks_directory + ' contained zero tasks! exiting...')
+    return
   }
-},
-{
-  is_done: false,
-  name: 'task 2',
-  done: function (cb) { console.log(this.name);cb(null, this.is_done);},
-  task: function (cb) {this.is_done = true; cb()}
-}]
 
-var oneoff = require('../lib/oneoff.js');
-oneoff.instance_zero = true;
-oneoff.run(tasks, function (err, result) {
-  console.log(err, result)
+  log('found the following tasks --> ' + files.join(', '))
+
+  var tasks = files.map(function (file) {
+    try {
+      return require(path.join(tasks_directory, file))
+    } catch (err) {
+      log('unable to load task --> ' + file)
+      fail(err)
+    }
+  })
+
+  log('successfully loaded all tasks, starting execution...')
+
+  oneoff.run(tasks, function (err, result) {
+    if (err) fail(err)
+    log('finished executing all tasks!')
+  })
 })
