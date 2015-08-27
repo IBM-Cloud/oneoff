@@ -24,13 +24,94 @@ oneoff provides the following features...
 
 ## install 
 
-$ npm install oneoff
+<pre>
+$ npm install oneoff --save
+</pre>
 
 ## usage 
 
-### define tasks
-### start oneoff during deployment
+Once onceoff has been installed, you will need to write your tasks and then 
+hook the module into your application startup. 
 
+### defining tasks
+
+*Tasks* are NodeJS [modules](https://nodejs.org/api/modules.html) that
+implement the following interface: 
+
+| attribute | type | required | details |
+|-----------|------|----------|---------|
+| name | string | X | Task identifier name |
+| done | function | X | Determine whether this task has been carried out. Passed callback as first argument with following signature: function (err, has_been_carried_out) {}|
+| task | function | X | Run the task. Passed callback as first argument with following signature: function (err) {}|
+| order | number |  | Tasks with a lower number are executed first (default value: 0).|
+
+<pre>
+module.exports = {
+  name: "",
+  done: function (callback) {
+  }, 
+  task: function (callback) {
+  },
+  order: 0
+}
+</pre>
+
+For example, creating a new task to set up the database schema for our
+application would follow the outline below. 
+
+<pre>
+module.exports = {
+  name: "setup db tables",
+  done: function (callback) {
+    does_db_table_exist(function (err, result) {
+      if (err) {
+        callback(err) 
+        return
+      }      
+      
+      callback(null, result)
+    })
+  }, 
+  task: function (callback) {
+    setup_the_database(function (err) {
+      if (err) {
+        callback(err)
+        return
+      }
+
+      callback()
+    })
+  },
+  order: 0
+}
+</pre>
+
+These modules will be loaded using *require()* at runtime and executed
+according to the following ordering rules.
+
+1. Tasks with the same order value are executed concurrently.
+2. Tasks with order value N will only be executed when all tasks with order value < N have
+   finished.
+3. Tasks without an explicitly *order* property defined are assigned the default order value (0).
+
+All tasks must live under the same parent directory.
+Files without the ".js" postfix or with the *.* prefix will be ignored.
+
+Any NPM packages defined in your package.json will be available to
+your tasks.
+
+### application startup 
+
+
+logging during usage
+
+optinal directory
+
+errors, exit
+
+expected log output
 ## tests
 
+<pre>
 $ npm tests
+</pre>
