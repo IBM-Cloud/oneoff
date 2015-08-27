@@ -32,10 +32,119 @@ describe('oneoff', function(){
       done()
     })
   })
-  describe('should run tasks as instance zero', function () {
-    oneoff.instance_zero = true
 
-    it('should run tasks with no order concurrently', function (_done) {
+  describe('should check tasks when non-zero instance', function () {
+    beforeEach(function () {
+      oneoff.instance_zero = false
+    })
+
+
+    it('should return immediately when tasks are already complete', function (finished) {
+      var called = 0
+      var done = function (cb) {
+        called++
+        cb(null, true)
+      }
+
+      var tasks = [ { name: true, task: assert.ok.bind(assert, false), done: done} ]
+
+      oneoff.run(tasks, function (err) {
+        assert.equal(called, 1)
+        finished()
+      })
+    })
+
+    it('should wait for task to complete before finishing', function (finished) {
+      var called = 0
+      var done = function (cb) {
+        called++
+        cb(null, called > 1)
+      }
+
+      var tasks = [ { name: true, task: assert.ok.bind(assert, false), done: done} ]
+
+      oneoff.run(tasks, function (err) {
+        assert.equal(called, 2)
+        finished()
+      })
+    })
+
+    it('should wait for multiple tasks', function (finished) {
+      var called = 0
+
+      var done = function (cb) {
+        called++
+        cb(null, called >= 3)
+      }
+
+      var tasks = [ 
+        { name: true, task: assert.ok.bind(assert, false), done: done},
+        { name: true, task: assert.ok.bind(assert, false), done: done},
+        { name: true, task: assert.ok.bind(assert, false), done: done} 
+      ]
+
+      var items = tasks.length
+
+      oneoff.run(tasks, function (err) {
+        assert.equal(called, 5)
+        finished()
+      })
+    })
+
+    it('should respect linear task ordering during waits', function (finished) {
+      var inflight = 0
+
+      var done = function (cb) {
+        inflight++
+        setTimeout(function () {
+          inflight--
+          assert.equal(inflight, 0)
+          cb(null, true)
+        }, 100)
+      }
+
+      var tasks = [ 
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 1},
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 2},
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 3} 
+      ]
+
+      oneoff.run(tasks, function (err) {
+        assert.ok(!err)
+        finished()
+      })
+    })
+
+    it('should wait for same-order tasks to complete in parallel', function (finished) {
+      var inflight = 0
+
+      var done = function (cb) {
+        inflight++
+        setTimeout(function () {
+          assert.equal(inflight, 3)
+          cb(null, true)
+        }, 100)
+      }
+
+      var tasks = [ 
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 1},
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 1},
+        { name: true, task: assert.ok.bind(assert, false), done: done, order: 1} 
+      ]
+
+      oneoff.run(tasks, function (err) {
+        assert.ok(!err)
+        finished()
+      })
+    })
+  })
+
+  describe('should run tasks as instance zero', function () {
+    beforeEach(function () {
+      oneoff.instance_zero = true
+    })
+
+    it('should run tasks with no order concurrently', function (finished) {
       var called = 0
       var done = function (cb) {
         return cb(null, called === 4)
@@ -55,10 +164,10 @@ describe('oneoff', function(){
 
       oneoff.run(tasks, function (err) {
         assert.ok(!err)
-        _done()
+        finished()
       })
     })
-    it('should run tasks respecting explicit order', function (_done) {
+    it('should run tasks respecting explicit order', function (finished) {
       var inflight = 0
       var done = function () {
         var finished = false;
@@ -83,10 +192,10 @@ describe('oneoff', function(){
 
       oneoff.run(tasks, function (err) {
         assert.ok(!err)
-        _done()
+        finished()
       })
     })
-    it('should run tasks with the same explicit order concurrently', function (_done) {
+    it('should run tasks with the same explicit order concurrently', function (finished) {
       var inflight = 0
       var done = function (cb) {
           cb(null, inflight === 4)
@@ -105,7 +214,7 @@ describe('oneoff', function(){
 
       oneoff.run(tasks, function (err) {
         assert.ok(!err)
-        _done()
+        finished()
       })
     })
     it('should handle errors during done()', function (done) {
