@@ -38,23 +38,24 @@ hook the module into your application startup.
 *Tasks* are NodeJS [modules](https://nodejs.org/api/modules.html) that
 implement the following interface: 
 
-| attribute | type | required | details |
-|-----------|------|----------|---------|
-| name | string | X | Task identifier name |
-| done | function | X | Determine whether this task has been carried out. Passed callback as first argument with following signature: function (err, has_been_carried_out) {}|
-| task | function | X | Run the task. Passed callback as first argument with following signature: function (err) {}|
-| order | number |  | Tasks with a lower number are executed first (default value: 0).|
-
 <pre>
 module.exports = {
   name: "",
   done: function (callback) {
+    // callback function (err || null, task_has_been_carried_out) {}
   }, 
   task: function (callback) {
+    // callback function (err || null) {}
   },
   order: 0
 }
 </pre>
+
+*name, done & task* are mandatory attributes, *order* is optional and defaults to zero.
+
+*done* will execute *callback* with two arguments, the error parameter (or null) and the boolean value with the results of the test which determines whether the task has been executed previously. 
+
+*task* will execute callback with one argument, the error parameter or null, when the task has finished.
 
 For example, creating a new task to set up the database schema for our
 application would follow the outline below. 
