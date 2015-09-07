@@ -6,6 +6,10 @@
   "scripts": {
     "test": "mocha test/"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IBM-Bluemix/oneoff"
+  },
   "keywords": [
     "cloud foundry",
     "tasks",
