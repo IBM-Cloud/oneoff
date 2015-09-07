@@ -1,6 +1,6 @@
 {
   "name": "oneoff",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Manage running one-off tasks for Cloud Foundry applications",
   "main": "lib/oneoff.js",
   "scripts": {
